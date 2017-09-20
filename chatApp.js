@@ -60,7 +60,6 @@ var loadHistory = function(id){
                 console.log(myResponse);
             }
             else{
-                console.log(history);
 
                 //Save chat messages array in oldMessages variable
                 oldMessages=history;
@@ -138,13 +137,15 @@ io.on('connection', function(socket){
       //Broadcast that user joined
       socket.broadcast.emit('chat message', chatMessage);
 
-      //Check if there are users online
-      if(users.length!=0)
-      //Emit to the current user the list of online people
-      io.to(socket.id).emit('show-online',users);
+      console.log("online are:"+users);
+
+
 
       //Set socket.user as current user
       socket.user = enteredName;
+
+      //Load history
+      loadHistory(socket.id);
 
       //Push user into the users array
       users.push(enteredName);
@@ -214,9 +215,6 @@ io.on('connection', function(socket){
   //Listener for laoding history
   socket.on('load-history',function(userName){
     console.log(userName+"is requesting history");
-
-    //Load history
-    loadHistory(socket.id);
 
     //Emit history to the current client
     io.to(socket.id).emit('show-history',oldMessages);

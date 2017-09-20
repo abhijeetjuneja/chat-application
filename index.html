@@ -92,6 +92,7 @@
     <script>
       var socket = io();
       var typeFlag=false;
+      var alreadyFlag=false;
 
       //Emit clear typing to Server and Set typeFlag false
       function notTyping(){
@@ -199,8 +200,10 @@
 
       //Listener for loading already online people
       socket.on('already-online', function(users){
-        for(var i in users)
-        $('#online-users').append("<li id='"+users[i]+"'>"+users[i]+"</li>");
+
+          for(var i in users)
+          $('#online-users').append("<li id='"+users[i]+"'>"+users[i]+"</li>");
+ 
       });
 
 
@@ -226,7 +229,6 @@
 
       //Listener to clear users not typing sent from server
       socket.on('clear user is typing',function(id){
-        console.log("remove it"+id);
         id="#typing"+id;
         $(id).remove();
       });
