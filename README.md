@@ -1,4 +1,4 @@
-# Robust Express JS Application for an Ecommerce Website
+# Chat Application in NodeJS using Socket.io
 This is a Chat Application using Socket.io
 
 ## Getting Started
