@@ -40,6 +40,7 @@
         </div>
         <div class="form-horizontal login-form">
           <div class="form-group">
+            <!-- Generate error for invalid or empty name -->
             <div class="col-sm-offset-4 col-sm-4 text-center" id="errorName">
               
             </div>
@@ -61,16 +62,24 @@
     <div id="chat" class="container-fluid row" style="display:none">
       <div class="col-sm-10 chatScreen">
         <center><button class="btn btn-primary" id="load-history">Load History</button></center>
+        
+        <!-- Fill chat messages here -->
         <ul id="messages"></ul>
        
       </div>
       <div class="col-sm-2 online text-center">
+
+        <!-- Logout button -->
         <center><button class="btn btn-primary" id="logout">Logout</button></center>
         <h4>Online</h4>
+
+        <!-- List of online users -->
         <ul id="online-users"></ul>
         <hr>
         <h4>Live Activity</h4>
-         <ul id="typing"></ul>
+
+        <!-- FList of users typing -->
+        <ul id="typing"></ul>
       </div>
       <div class="col-sm-12 chatForm">
         <form action="" class="chatForm">
