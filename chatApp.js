@@ -127,6 +127,7 @@ io.on('connection', function(socket){
     //Check if username is taken from users array
     if(users.indexOf(enteredName)==-1)
     {
+      console.log(enteredName+" just joined.");
       var msg=enteredName+ " came online";
       //Set flag for online offline notification
       flag=0;
@@ -137,9 +138,8 @@ io.on('connection', function(socket){
       //Broadcast that user joined
       socket.broadcast.emit('chat message', chatMessage);
 
-      console.log("online are:"+users);
-
-
+      //Emit already online users
+      io.to(socket.id).emit('already-online',users); 
 
       //Set socket.user as current user
       socket.user = enteredName;
@@ -149,6 +149,8 @@ io.on('connection', function(socket){
 
       //Push user into the users array
       users.push(enteredName);
+
+      console.log("No. of Connected Users - "+users.length);
 
       //Broadcast to client to add a new online user
       socket.broadcast.emit('add-online', enteredName);
@@ -184,37 +186,9 @@ io.on('connection', function(socket){
   });
 
 
-  //Listener for disconnection
-  socket.on('disconnect',function(){
-
-     //Remove user from users array
-  	 users.splice(users.indexOf(socket.user), 1);
-
-     //delete color user mapping for this user
-     deleteColorUserMapping(socket.user);
-
-     //Set message that user is logged out
-  	 var msg=socket.user+" has logged out";
-
-     //Set flag for offline notification
-     flag=0;
-
-     //Get color and message
-     getColorAndMessage(socket.user,msg,flag);
-
-     //Emit to client as a chat message
-     socket.broadcast.emit('chat message',chatMessage);
-
-     //Emit to client to remove user from online users
-  	 socket.broadcast.emit('remove-online', socket.user);
-
-
-  }); //end socket disconnected
-
-
   //Listener for laoding history
   socket.on('load-history',function(userName){
-    console.log(userName+"is requesting history");
+    console.log(userName+" is requesting history");
 
     //Emit history to the current client
     io.to(socket.id).emit('show-history',oldMessages);
@@ -249,6 +223,39 @@ io.on('connection', function(socket){
     //Add mapping to user color mapping array
     userColorMapping.push(map);
   });
+
+
+
+  //Listener for disconnection
+  socket.on('disconnect',function(){
+
+     console.log(socket.user+" left.");
+
+     //Remove user from users array
+     users.splice(users.indexOf(socket.user), 1);
+     console.log("No. of Connected Users - "+users.length);
+
+     //delete color user mapping for this user
+     deleteColorUserMapping(socket.user);
+
+     //Set message that user is logged out
+     var msg=socket.user+" has logged out";
+
+     //Set flag for offline notification
+     flag=0;
+
+     //Get color and message
+     getColorAndMessage(socket.user,msg,flag);
+
+     //Emit to client as a chat message
+     socket.broadcast.emit('chat message',chatMessage);
+
+     //Emit to client to remove user from online users
+     socket.broadcast.emit('remove-online', socket.user);
+
+
+  }); //end socket disconnected
+
 
 });
 

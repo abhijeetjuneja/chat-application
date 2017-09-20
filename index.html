@@ -29,6 +29,7 @@
       #typing li{color: white;}
       #typing{margin-bottom: 0!important;}
       .chatScreen{position:fixed;bottom: 0;}
+      #me{text-decoration: underline;}
     </style>
   </head>
   <body>
@@ -70,7 +71,7 @@
       <div class="col-sm-2 online text-center">
 
         <!-- Logout button -->
-        <center><button class="btn btn-primary" id="logout">Logout</button></center>
+        <center><h4 id="me"></h4><button class="btn btn-primary" id="logout">Logout</button></center>
         <h4>Online</h4>
 
         <!-- List of online users -->
@@ -93,6 +94,7 @@
       var socket = io();
       var typeFlag=false;
       var alreadyFlag=false;
+      var onlineUsers=[];
 
       //Emit clear typing to Server and Set typeFlag false
       function notTyping(){
@@ -117,6 +119,7 @@
           //Emit new user to the server
           socket.emit('user',$('#name').val(),function(unique){
             if(unique){
+              $('#me').text($('#name').val());
               $('#chat').show();
               $('.main-login').hide();
               setColor();
@@ -200,21 +203,42 @@
 
       //Listener for loading already online people
       socket.on('already-online', function(users){
-
           for(var i in users)
-          $('#online-users').append("<li id='"+users[i]+"'>"+users[i]+"</li>");
+          {
+            if(onlineUsers.indexOf(users[i])==-1)
+            {
+              $('#online-users').append("<li id='"+users[i]+"'>"+users[i]+"</li>");
+
+              //Add them to online list
+              onlineUsers.push(users[i]);
+            }
+            
+          }
+          
  
       });
 
 
       //Listener for adding online people sent by the server
       socket.on('add-online', function(userName){
-        $('#online-users').append("<li id='"+userName+"'>"+userName+"</li>");
+        if(onlineUsers.indexOf(userName)==-1)
+        {
+          $('#online-users').append("<li id='"+userName+"'>"+userName+"</li>");
+
+          //Add them to online list
+          onlineUsers.push(userName);
+        }
+
+        
       });
 
 
       //Listener to remove online people send from server
       socket.on('remove-online', function(id){
+
+        //Remove them online list
+        var index = onlineUsers.indexOf(id);
+        onlineUsers.splice(index,1);
         id="#"+id;
         $(id).remove();
       });
