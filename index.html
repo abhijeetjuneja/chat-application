@@ -1,0 +1,236 @@
+<!doctype html>
+<html>
+  <head>
+    <title>ChitChat.com</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Droid+Sans">
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body{overflow-x: hidden;background-color:#EFEAEA;min-height: 100vh;color: black;font-family: 'Droid Sans','serif';}
+      .login{border:1px solid black;margin-top: 7vh;margin-left:25%;margin-right:25%;color: black!important;}
+      .login-form{margin-top: 5vh;}
+      hr{color: black;}
+      .submit{margin-top: 5vh;}
+      a{color: white!important;}
+      a:hover{cursor: pointer;}
+      .btn{background-color: black!important;color:#EFEAEA!important ;font-weight: bold;border: 0px;}
+      .btn:hover,.btn:active{-webkit-filter: drop-shadow(0px 8px 8px black);-ms-filter: drop-shadow(0px 8px 8px black);-o-filter: drop-shadow(0px 8px 8px black);-moz-filter: drop-shadow(0px 8px 8px black);filter: drop-shadow(0px 8px 8px black);}
+      #load-history{position: fixed; top: 0;}
+      #chat{ background: transparent; padding: 3px; position: fixed; bottom: 0; width: 100%; }
+      form input { color:black;border: 0; padding: 10px; width: 90%; margin-right: .5%; }
+      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
+      #messages { overflow-y: auto;max-height:90vh;width:83vw;list-style-type: none; margin: 0;margin-bottom: 10vh; padding: 0; position: fixed;bottom: 0;}
+      .row{margin-left: 0!important;margin-right: 0!important;}
+      #messages { background:transparent!important;padding: 5px 10px; }
+      .online{background-color: #7D7D7D;color:white;position:fixed;top: 0;right: 0;}
+      #online-users,#typing{background-color: #7D7D7D;color:white;position:relative;}
+      #errorName{color: red;font-weight: bold;}
+      #typing li{color: white;}
+      #typing{margin-bottom: 0!important;}
+      .chatScreen{position:fixed;bottom: 0;}
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid row text-center main-login" id="login">
+      <div class="login text-center col-xs-12 col-lg-6">
+        <div class="login-heading">
+          <h2>Login to ChitChat.com !</h2>
+          <hr>
+        </div>
+        <div class="form-horizontal login-form">
+          <div class="form-group">
+            <div class="col-sm-offset-4 col-sm-4 text-center" id="errorName">
+              
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="name" class="control-label col-sm-2 col-sm-offset-2">Name:</label>
+            <div class="col-sm-4">
+              <input id="name" type="name" placeholder="name" name="name" required class="form-control">
+            </div>
+          </div>
+          <div class="form-group submit">
+            <div class="col-sm-offset-4 col-sm-4">
+              <button type="submit" class="btn btn-primary" id="login-button">Login</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="chat" class="container-fluid row" style="display:none">
+      <div class="col-sm-10 chatScreen">
+        <center><button class="btn btn-primary" id="load-history">Load History</button></center>
+        <ul id="messages"></ul>
+       
+      </div>
+      <div class="col-sm-2 online text-center">
+        <center><button class="btn btn-primary" id="logout">Logout</button></center>
+        <h4>Online</h4>
+        <ul id="online-users"></ul>
+        <hr>
+        <h4>Live Activity</h4>
+         <ul id="typing"></ul>
+      </div>
+      <div class="col-sm-12 chatForm">
+        <form action="" class="chatForm">
+          <input id="message" autocomplete="off" /><button id="send-button">Send</button>
+        </form>
+      </div>
+    </div>
+    <script src="http://cdn.socket.io/socket.io-1.4.5.js"></script>
+    <script src="http://code.jquery.com/jquery-1.11.1.js"></script>
+    <script>
+      var socket = io();
+      var typeFlag=false;
+
+      //Emit clear typing to Server and Set typeFlag false
+      function notTyping(){
+        typeFlag=false;
+        socket.emit('clear typing');
+      }
+
+      //Set color for new user in server
+      function setColor(){
+        socket.emit('setColor');
+      }
+
+      //On Login Verify whether user has entered something and username isn't already taken
+      $('#login-button').click(function(){
+        //Check if user entered anything before clicking Login
+        if($('#name').val()=='')
+        {
+          $('#errorName').html('<h4>Please Enter your Name !</h4>');
+        }
+        else
+        {
+          //Emit new user to the server
+          socket.emit('user',$('#name').val(),function(unique){
+            if(unique){
+              $('#chat').show();
+              $('.main-login').hide();
+              setColor();
+            }
+            else
+            {
+              $('#errorName').html('<h4>UserName already Taken</h4>');
+            }
+          });
+        }
+        
+      });
+
+
+      //Load History
+      $('#load-history').click(function(){
+        $('#load-history').hide();
+        //Ask for history from server
+        socket.emit('load-history',$('#name').val());
+      });
+
+      
+      //Wait for user to send message
+      $('#send-button').click(function(){
+        //Check if something is typed
+        if($('#message').val()=='')
+        {
+          alert("Please enter something");
+          return false;
+        }
+        else
+        {
+          //Emit chat message to Server
+          socket.emit('chat message', $('#message').val());
+          $('#message').val('');
+          return false;
+        }
+        
+      });
+
+      //Identify if user pressed key
+      $('#message').keydown(function(){
+        //if typing not set true
+        if(typeFlag==false)
+        {
+          typeFlag=true;
+          //Emit to server that user is typing
+          socket.emit('typing');
+          //Set timeout to check after 2 seconds if user is still typing
+          typingTimeout=setTimeout(notTyping,2000);
+        }
+        else
+        {
+          //Clear previous timeout
+          clearTimeout(typingTimeout);
+
+          //Set new timeout
+          typingTimeout=setTimeout(notTyping,2000);
+        }
+        
+      });
+
+      //Listener for chat message from server
+      socket.on('chat message', function(msg){
+        $('#messages').append(msg);
+        var messageBody = document.querySelector('#messages');
+        //Keep scrollbar position to bottom
+        messageBody.scrollTop = messageBody.scrollHeight - messageBody.clientHeight;
+      });
+
+
+      //Listener for showing history from server
+      socket.on('show-history', function(historyArray){
+        for(var i in historyArray)
+          $('#messages').prepend($('<li>').text(historyArray[i].userName+' : '+historyArray[i].userMessage));
+        var messageBody = document.querySelector('#messages');
+        //Keep scrollbar position to bottom
+        messageBody.scrollTop = messageBody.scrollHeight - messageBody.clientHeight;
+      }); 
+
+
+      //Listener for loading already online people
+      socket.on('already-online', function(users){
+        for(var i in users)
+        $('#online-users').append("<li id='"+users[i]+"'>"+users[i]+"</li>");
+      });
+
+
+      //Listener for adding online people sent by the server
+      socket.on('add-online', function(userName){
+        $('#online-users').append("<li id='"+userName+"'>"+userName+"</li>");
+      });
+
+
+      //Listener to remove online people send from server
+      socket.on('remove-online', function(id){
+        id="#"+id;
+        $(id).remove();
+      });
+
+
+      //Listener to reflect users typing sent from server
+      socket.on('user is typing',function(msg){
+        var userName=msg.split(' ');
+        $('#typing').append("<li id='typing"+userName[0]+"'>"+msg+"</li>");
+      });
+
+
+      //Listener to clear users not typing sent from server
+      socket.on('clear user is typing',function(id){
+        console.log("remove it"+id);
+        id="#typing"+id;
+        $(id).remove();
+      });
+
+
+
+      //Logout
+      $('#logout').click(function(){
+        window.location.reload();
+      });
+
+
+
+    </script>
+  </body>
+</html>
