@@ -1,4 +1,4 @@
-# SOCKET.IO CHAT APPLICATION
+# Socket.io Chat Application
 This is a NodeJs Chat Application made using Socket.io. All the chats are stored using MongoDB.
 
 ## Getting Started
